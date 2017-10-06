@@ -24,7 +24,7 @@ const counter = (state=0, action) => {
 
 //     const dispatch = (action) => {
 //         state = reducer(state, action);
-//         listeners.forEach(listener => lister());
+//         listeners.forEach(listener => listener());
 //     };
 
 //     const subscribe = (listener) => {
