@@ -78,12 +78,12 @@ var _React = React,
     Component = _React.Component;
 
 
-var FilterLink = function FilterLink(_ref) {
-    var filter = _ref.filter,
-        currentFilter = _ref.currentFilter,
-        children = _ref.children;
+var Link = function Link(_ref) {
+    var active = _ref.active,
+        children = _ref.children,
+        _onClick = _ref.onClick;
 
-    if (filter === currentFilter) {
+    if (active) {
         return React.createElement(
             'span',
             null,
@@ -95,13 +95,81 @@ var FilterLink = function FilterLink(_ref) {
         { href: '#',
             onClick: function onClick(e) {
                 e.preventDefault();
-                store.dispatch({
-                    type: 'SET_VISIBILITY_FILTER',
-                    filter: filter
-                });
+                _onClick();
             } },
         children,
         ' '
+    );
+};
+
+var FilterLink = function (_Component) {
+    _inherits(FilterLink, _Component);
+
+    function FilterLink() {
+        _classCallCheck(this, FilterLink);
+
+        return _possibleConstructorReturn(this, (FilterLink.__proto__ || Object.getPrototypeOf(FilterLink)).apply(this, arguments));
+    }
+
+    _createClass(FilterLink, [{
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            var _this2 = this;
+
+            this.unsubscribe = store.subscribe(function () {
+                return _this2.forceUpdate();
+            });
+        }
+    }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+            this.unsubscribe();
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var props = this.props;
+            var state = store.getState();
+
+            return React.createElement(
+                Link,
+                { active: props.filter === state.visibilityFilter,
+                    onClick: function onClick() {
+                        return store.dispatch({
+                            type: 'SET_VISIBILITY_FILTER',
+                            filter: props.filter
+                        });
+                    } },
+                ' ',
+                props.children,
+                ' '
+            );
+        }
+    }]);
+
+    return FilterLink;
+}(Component);
+
+var AddTodo = function AddTodo() {
+    var input = void 0;
+
+    return React.createElement(
+        'div',
+        null,
+        React.createElement('input', { ref: function ref(node) {
+                input = node;
+            } }),
+        React.createElement(
+            'button',
+            { onClick: function onClick() {
+                    store.dispatch({
+                        type: 'ADD_TODO',
+                        id: nextTodoId++,
+                        text: input.value });
+                    input.value = '';
+                } },
+            'Add Todo'
+        )
     );
 };
 
@@ -120,99 +188,113 @@ var getVisibleTodos = function getVisibleTodos(todos, filter) {
     }
 };
 
-var nextTodoId = 0;
+var Todo = function Todo(_ref2) {
+    var onClick = _ref2.onClick,
+        completed = _ref2.completed,
+        text = _ref2.text;
+    return React.createElement(
+        'li',
+        {
+            onClick: onClick,
+            style: {
+                textDecoration: completed ? 'line-through' : 'none'
+            } },
+        text
+    );
+};
 
-var TodoApp = function (_Component) {
-    _inherits(TodoApp, _Component);
+var TodoList = function TodoList(_ref3) {
+    var todos = _ref3.todos,
+        onTodoClick = _ref3.onTodoClick;
+    return React.createElement(
+        'ul',
+        null,
+        todos.map(function (todo) {
+            return React.createElement(Todo, _extends({ key: todo.id
+            }, todo, {
+                onClick: function onClick() {
+                    return onTodoClick(todo.id);
+                } }));
+        })
+    );
+};
 
-    function TodoApp() {
-        _classCallCheck(this, TodoApp);
+var Footer = function Footer() {
+    return React.createElement(
+        'p',
+        null,
+        ' Show:',
+        ' ',
+        React.createElement(
+            FilterLink,
+            { filter: 'SHOW_ALL' },
+            'All'
+        ),
+        ' ',
+        React.createElement(
+            FilterLink,
+            { filter: 'SHOW_ACTIVE' },
+            'Active'
+        ),
+        ' ',
+        React.createElement(
+            FilterLink,
+            { filter: 'SHOW_COMPLETED' },
+            'Completed'
+        )
+    );
+};
 
-        return _possibleConstructorReturn(this, (TodoApp.__proto__ || Object.getPrototypeOf(TodoApp)).apply(this, arguments));
+var VisibleTodoList = function (_Component2) {
+    _inherits(VisibleTodoList, _Component2);
+
+    function VisibleTodoList() {
+        _classCallCheck(this, VisibleTodoList);
+
+        return _possibleConstructorReturn(this, (VisibleTodoList.__proto__ || Object.getPrototypeOf(VisibleTodoList)).apply(this, arguments));
     }
 
-    _createClass(TodoApp, [{
+    _createClass(VisibleTodoList, [{
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            var _this4 = this;
+
+            this.unsubscribe = store.subscribe(function () {
+                return _this4.forceUpdate();
+            });
+        }
+    }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+            this.unsubscribe();
+        }
+    }, {
         key: 'render',
         value: function render() {
-            var _this2 = this;
+            var props = this.props;
+            var state = store.getState();
 
-            var _props = this.props,
-                todos = _props.todos,
-                visibilityFilter = _props.visibilityFilter;
-
-            var visibleTodos = getVisibleTodos(todos, visibilityFilter);
-            return React.createElement(
-                'div',
-                null,
-                React.createElement('input', { ref: function ref(node) {
-                        _this2.input = node;
-                    } }),
-                React.createElement(
-                    'button',
-                    { onClick: function onClick() {
-                            store.dispatch({
-                                type: 'ADD_TODO',
-                                text: _this2.input.value,
-                                id: nextTodoId++
-                            });
-                            _this2.input.value = '';
-                        } },
-                    'Add Todo'
-                ),
-                React.createElement(
-                    'ul',
-                    null,
-                    visibleTodos.map(function (todo) {
-                        return React.createElement(
-                            'li',
-                            { key: todo.id,
-                                onClick: function onClick() {
-                                    store.dispatch({
-                                        type: 'TOGGLE_TODO',
-                                        id: todo.id
-                                    });
-                                },
-                                style: {
-                                    textDecoration: todo.completed ? 'line-through' : 'none'
-                                } },
-                            todo.text
-                        );
-                    })
-                ),
-                React.createElement(
-                    'p',
-                    null,
-                    ' Show:',
-                    ' ',
-                    React.createElement(
-                        FilterLink,
-                        { filter: 'SHOW_ALL', currentFilter: visibilityFilter },
-                        'All'
-                    ),
-                    ' ',
-                    React.createElement(
-                        FilterLink,
-                        { filter: 'SHOW_ACTIVE', currentFilter: visibilityFilter },
-                        'Active'
-                    ),
-                    ' ',
-                    React.createElement(
-                        FilterLink,
-                        { filter: 'SHOW_COMPLETED', currentFilter: visibilityFilter },
-                        'Completed'
-                    )
-                )
-            );
+            return React.createElement(TodoList, {
+                todos: getVisibleTodos(state.todos, state.visibilityFilter),
+                onTodoClick: function onTodoClick(id) {
+                    return store.dispatch({ type: 'TOGGLE_TODO', id: id });
+                } });
         }
     }]);
 
-    return TodoApp;
+    return VisibleTodoList;
 }(Component);
 
-var render = function render() {
-    ReactDOM.render(React.createElement(TodoApp, store.getState()), document.getElementById('root'));
+var nextTodoId = 0;
+
+var TodoApp = function TodoApp() {
+    return React.createElement(
+        'div',
+        null,
+        React.createElement(AddTodo, null),
+        React.createElement(VisibleTodoList, null),
+        React.createElement(Footer, null)
+    );
 };
 
-// callback
-store.subscribe(render);
-render();
+ReactDOM.render(React.createElement(TodoApp, null), document.getElementById('root'));
