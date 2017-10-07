@@ -69,11 +69,6 @@ var todoApp = combineReducers({
     visibilityFilter: visibilityFilter
 });
 
-var _Redux2 = Redux,
-    createStore = _Redux2.createStore;
-
-var store = createStore(todoApp);
-
 var _React = React,
     Component = _React.Component;
 
@@ -116,6 +111,8 @@ var FilterLink = function (_Component) {
         value: function componentDidMount() {
             var _this2 = this;
 
+            var store = this.context.store;
+
             this.unsubscribe = store.subscribe(function () {
                 return _this2.forceUpdate();
             });
@@ -129,6 +126,8 @@ var FilterLink = function (_Component) {
         key: 'render',
         value: function render() {
             var props = this.props;
+            var store = this.context.store;
+
             var state = store.getState();
 
             return React.createElement(
@@ -150,7 +149,13 @@ var FilterLink = function (_Component) {
     return FilterLink;
 }(Component);
 
-var AddTodo = function AddTodo() {
+FilterLink.contextTypes = {
+    store: React.PropTypes.object
+};
+
+var AddTodo = function AddTodo(props, _ref2) {
+    var store = _ref2.store;
+
     var input = void 0;
 
     return React.createElement(
@@ -173,6 +178,10 @@ var AddTodo = function AddTodo() {
     );
 };
 
+AddTodo.contextTypes = {
+    store: React.PropTypes.object
+};
+
 var getVisibleTodos = function getVisibleTodos(todos, filter) {
     switch (filter) {
         case 'SHOW_ALL':
@@ -188,10 +197,10 @@ var getVisibleTodos = function getVisibleTodos(todos, filter) {
     }
 };
 
-var Todo = function Todo(_ref2) {
-    var onClick = _ref2.onClick,
-        completed = _ref2.completed,
-        text = _ref2.text;
+var Todo = function Todo(_ref3) {
+    var onClick = _ref3.onClick,
+        completed = _ref3.completed,
+        text = _ref3.text;
     return React.createElement(
         'li',
         {
@@ -203,9 +212,9 @@ var Todo = function Todo(_ref2) {
     );
 };
 
-var TodoList = function TodoList(_ref3) {
-    var todos = _ref3.todos,
-        onTodoClick = _ref3.onTodoClick;
+var TodoList = function TodoList(_ref4) {
+    var todos = _ref4.todos,
+        onTodoClick = _ref4.onTodoClick;
     return React.createElement(
         'ul',
         null,
@@ -259,6 +268,8 @@ var VisibleTodoList = function (_Component2) {
         value: function componentDidMount() {
             var _this4 = this;
 
+            var store = this.context.store;
+
             this.unsubscribe = store.subscribe(function () {
                 return _this4.forceUpdate();
             });
@@ -272,6 +283,8 @@ var VisibleTodoList = function (_Component2) {
         key: 'render',
         value: function render() {
             var props = this.props;
+            var store = this.context.store;
+
             var state = store.getState();
 
             return React.createElement(TodoList, {
@@ -285,6 +298,10 @@ var VisibleTodoList = function (_Component2) {
     return VisibleTodoList;
 }(Component);
 
+VisibleTodoList.contextTypes = {
+    store: React.PropTypes.object
+};
+
 var nextTodoId = 0;
 
 var TodoApp = function TodoApp() {
@@ -297,4 +314,42 @@ var TodoApp = function TodoApp() {
     );
 };
 
-ReactDOM.render(React.createElement(TodoApp, null), document.getElementById('root'));
+var Provider = function (_Component3) {
+    _inherits(Provider, _Component3);
+
+    function Provider() {
+        _classCallCheck(this, Provider);
+
+        return _possibleConstructorReturn(this, (Provider.__proto__ || Object.getPrototypeOf(Provider)).apply(this, arguments));
+    }
+
+    _createClass(Provider, [{
+        key: 'getChildContext',
+        value: function getChildContext() {
+            return {
+                store: this.props.store
+            };
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            return this.props.children;
+        }
+    }]);
+
+    return Provider;
+}(Component);
+
+Provider.childContextTypes = {
+    store: React.PropTypes.object
+};
+
+var _Redux2 = Redux,
+    createStore = _Redux2.createStore;
+
+
+ReactDOM.render(React.createElement(
+    Provider,
+    { store: createStore(todoApp) },
+    React.createElement(TodoApp, null)
+), document.getElementById('root'));
